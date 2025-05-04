@@ -42,36 +42,61 @@ function formatResponse(text) {
 app.post("/api/chat", async (req, res) => {
   try {
     const { message, sessionId = "default" } = req.body;
+    console.log("Received message:", message);
+    console.log("Session ID:", sessionId);
+    console.log("API Key present:", !!process.env.GEMINI_API_KEY);
+
+    // Validate input
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
 
     // Get or create chat session
     if (!chatSessions.has(sessionId)) {
-      const chat = await model.startChat({
-        history: [
-          { role: "user", parts: [{ text: "Hello" }] },
-          {
-            role: "model",
-            parts: [
-              { text: "Great to meet you. What would you like to know?" },
-            ],
-          },
-        ],
-      });
-      chatSessions.set(sessionId, chat);
+      try {
+        const chat = await model.startChat({
+          history: [
+            { role: "user", parts: [{ text: "Hello" }] },
+            {
+              role: "model",
+              parts: [
+                { text: "Great to meet you. What would you like to know?" },
+              ],
+            },
+          ],
+        });
+        chatSessions.set(sessionId, chat);
+      } catch (chatInitError) {
+        console.error("Error initializing chat session:", chatInitError);
+        return res.status(500).json({ error: "Failed to initialize chat session", details: chatInitError.message });
+      }
     }
 
     const chat = chatSessions.get(sessionId);
 
     // Send message and get response
-    const result = await chat.sendMessage(message);
+    let result;
+    try {
+      result = await chat.sendMessage(message);
+    } catch (sendMessageError) {
+      console.error("Error sending message:", sendMessageError);
+      return res.status(500).json({ error: "Failed to send message", details: sendMessageError.message });
+    }
+
     const rawResponse = result.response.text();
+    console.log("Raw response:", rawResponse);
 
     // Format the response for better readability
     const formattedResponse = formatResponse(rawResponse);
 
     res.json({ response: formattedResponse });
   } catch (error) {
-    console.error("Error processing chat message:", error);
-    res.status(500).json({ error: "Failed to process your message" });
+    console.error("Unexpected error processing chat message:", error);
+    res.status(500).json({ 
+      error: "Failed to process your message", 
+      details: error.message,
+      stack: error.stack 
+    });
   }
 });
 
