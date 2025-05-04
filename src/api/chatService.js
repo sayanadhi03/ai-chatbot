@@ -16,22 +16,7 @@ export const sendMessage = async (message) => {
     }
 
     const data = await response.json();
-
-    // Format response to ensure proper line breaks for lists
-    // This is a backup in case the backend doesn't format properly
-    let formattedResponse = data.response;
-
-    // Ensure numbered lists and bullet points have proper line breaks
-    formattedResponse = formattedResponse.replace(/(\d+\.\s)/g, "\n$1");
-    formattedResponse = formattedResponse.replace(/([\*\-]\s)/g, "\n$1");
-
-    // Remove any double line breaks that might have been created
-    formattedResponse = formattedResponse.replace(/\n\n/g, "\n");
-
-    // Remove leading line break if present
-    formattedResponse = formattedResponse.replace(/^\n/, "");
-
-    return formattedResponse;
+    return data.response;
   } catch (error) {
     console.error("Error in sendMessage:", error);
     throw error;
