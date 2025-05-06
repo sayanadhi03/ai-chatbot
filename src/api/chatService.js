@@ -1,24 +1,24 @@
-// This file will handle the communication with your backend
+// src/api/chatService.js
+const API_URL = process.env.REACT_APP_API_URL || "";
 
-export const sendMessage = async (message) => {
+export const sendMessage = async (message, sessionId = "default") => {
   try {
-    // Call to backend API
-    const response = await fetch("/api/chat", {
+    const response = await fetch(`${API_URL}/api/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, sessionId }),
     });
 
     if (!response.ok) {
-      throw new Error("Network response was not ok");
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to send message");
     }
 
-    const data = await response.json();
-    return data.response;
+    return await response.json();
   } catch (error) {
-    console.error("Error in sendMessage:", error);
+    console.error("Error sending message:", error);
     throw error;
   }
 };

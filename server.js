@@ -68,7 +68,10 @@ app.post("/api/chat", async (req, res) => {
         chatSessions.set(sessionId, chat);
       } catch (chatInitError) {
         console.error("Error initializing chat session:", chatInitError);
-        return res.status(500).json({ error: "Failed to initialize chat session", details: chatInitError.message });
+        return res.status(500).json({
+          error: "Failed to initialize chat session",
+          details: chatInitError.message,
+        });
       }
     }
 
@@ -80,7 +83,10 @@ app.post("/api/chat", async (req, res) => {
       result = await chat.sendMessage(message);
     } catch (sendMessageError) {
       console.error("Error sending message:", sendMessageError);
-      return res.status(500).json({ error: "Failed to send message", details: sendMessageError.message });
+      return res.status(500).json({
+        error: "Failed to send message",
+        details: sendMessageError.message,
+      });
     }
 
     const rawResponse = result.response.text();
@@ -92,10 +98,10 @@ app.post("/api/chat", async (req, res) => {
     res.json({ response: formattedResponse });
   } catch (error) {
     console.error("Unexpected error processing chat message:", error);
-    res.status(500).json({ 
-      error: "Failed to process your message", 
+    res.status(500).json({
+      error: "Failed to process your message",
       details: error.message,
-      stack: error.stack 
+      stack: error.stack,
     });
   }
 });
